@@ -100,4 +100,26 @@
      (close-output-port out)))
   (check-exn exn:fail:websocket?
              (λ () (ws-connect (format "ws://127.0.0.1:~a/x" p4))))
-  (tcp-close l4))
+  (tcp-close l4)
+
+  ;; ---- ws-adopt: caller parses the request, lib adopts the connection ----
+  (define-values (l5 p5) (make-listener))
+  (define adopt-thread
+    (thread
+     (λ ()
+       (define-values (in out) (tcp-accept l5))
+       ;; the caller-level multiplexer reads the raw request itself
+       (define req (ws-read-upgrade-request! in))
+       (check-equal? (ws-upgrade-path req) "/adopt")
+       (define conn
+         (ws-adopt in out (ws-upgrade-header req "sec-websocket-key")))
+       (ws-send-text! conn "adopted")
+       (check-equal? (ws-message-payload (ws-recv conn)) #"back at you")
+       (ws-close! conn))))
+  (define conn5 (ws-connect (format "ws://127.0.0.1:~a/adopt" p5)))
+  (check-equal? (ws-message-payload (ws-recv conn5)) #"adopted")
+  (ws-send-text! conn5 "back at you")
+  (check-equal? (ws-recv conn5) eof)
+  (ws-close! conn5)
+  (check-true (and (sync/timeout 5 adopt-thread) #t) "adopt handler should exit")
+  (tcp-close l5))

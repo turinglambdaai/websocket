@@ -114,6 +114,14 @@
   (ws-write-accept-response! out (ws-upgrade-header req "sec-websocket-key"))
   (ws in out #f (make-semaphore 1) (box #f) (box #f)))
 
+;; For callers that already parsed the HTTP request themselves (single-port
+;; multiplexers, proxies): perform the 101 response from the already-read
+;; Sec-WebSocket-Key, then adopt the connection. `key` is the raw
+;; Sec-WebSocket-Key header value.
+(define (ws-adopt in out key)
+  (ws-write-accept-response! out key)
+  (ws in out #f (make-semaphore 1) (box #f) (box #f)))
+
 ;; One thread accepts forever; each connection gets its own handler
 ;; thread. The loop dies when the listener is closed.
 (define (ws-serve listener handler)
@@ -222,6 +230,7 @@
                            (#:headers (listof (cons/c string? string?)))
                            ws?)]
           [ws-accept (-> input-port? output-port? ws?)]
+          [ws-adopt (-> input-port? output-port? string? ws?)]
           [ws-serve (-> tcp-listener? (-> ws? any/c) thread?)]
           [ws-recv (-> ws? (or/c ws-message? eof-object?))]
           [ws-send-text! (-> ws? string? void?)]
