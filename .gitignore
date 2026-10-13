@@ -1,0 +1,4 @@
+compiled/
+doc/
+*.log
+.DS_Store
