@@ -94,11 +94,16 @@
   (define path (url->request-path u))
   (define-values (in out)
     (if secure? (ssl-connect host port) (tcp-connect host port)))
+  (define (close-ports!)
+    (unless (port-closed? in) (close-input-port in))
+    (unless (port-closed? out) (close-output-port out)))
+  ;; every handshake failure surfaces as exn:fail:websocket — including
+  ;; low-level I/O errors like a connection reset mid-response
   (with-handlers
-      ([exn:fail? (λ (e)
-                    (unless (port-closed? in) (close-input-port in))
-                    (unless (port-closed? out) (close-output-port out))
-                    (raise e))])
+      ([exn:fail:websocket? (λ (e) (close-ports!) (raise e))]
+       [exn:fail? (λ (e)
+                    (close-ports!)
+                    (websocket-error "handshake failed: ~a" (exn-message e)))])
     (define key (ws-new-key))
     (ws-write-upgrade-request! out host-header path key #:headers extra)
     (ws-read-upgrade-response! in key)

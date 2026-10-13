@@ -67,6 +67,8 @@ sending the appropriate close frame (@racket[1002] protocol error,
 Opens a @racketid[ws]:// or @racketid[wss]:// connection (plain TCP or
 TLS), performs the opening handshake, and returns the connection.
 Additional handshake headers can be supplied via @racket[headers].
+Every handshake failure — rejection, malformed response, or a
+connection reset mid-handshake — raises @racket[exn:fail:websocket?].
 
 @defproc[(ws-accept [in input-port?] [out output-port?]) ws?]
 
