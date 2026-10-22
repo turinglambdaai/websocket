@@ -1,5 +1,7 @@
 # websocket
 
+**English** · [中文](README.zh-CN.md)
+
 [![CI](https://github.com/turinglambdaai/websocket/actions/workflows/ci.yml/badge.svg)](https://github.com/turinglambdaai/websocket/actions/workflows/ci.yml)
 
 RFC 6455 WebSocket client and server for Racket. A protocol library, not a

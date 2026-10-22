@@ -1,5 +1,7 @@
 # websocket
 
+[English](README.md) · **中文**
+
 [![CI](https://github.com/turinglambdaai/websocket/actions/workflows/ci.yml/badge.svg)](https://github.com/turinglambdaai/websocket/actions/workflows/ci.yml)
 
 Racket 的 RFC 6455 WebSocket 客户端与服务端实现。这是协议库而不是框架：连接被抽象成 Racket port 风格的对象，路由、会话、序列化一切都留给调用者。
